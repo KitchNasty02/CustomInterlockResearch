@@ -17,8 +17,9 @@ def add_3d_dovetail_interlock(
     beam_width_layers=2,
     beam_height_layers=2,
     beam_depth_layers=2,
-    avoidance_dist=NOZZLE_SIZE,
-    inverted=False
+    avoidance_layers=2,
+    z_inverted=False,
+    y_inverted=False
 ):
     """
     Adds a 3D dovetail-based interlock between two mesh halves.
@@ -32,12 +33,18 @@ def add_3d_dovetail_interlock(
         beam_width_layers: width in Y (layer multiples)
         beam_height_layers: height in Z (layer multiples)
         beam_depth_layers: depth in X (layer multiples)
-        avoidance_dist: offset from outer walls
-        inverted: which side of dovetail is extruding. Default is false
+        avoidance_layers: layer offset from outer walls
+        z_inverted: if dovetail is inverted in z (height) direction. Default is false
+        y_inverted: if dovetail is inverted in y (width) direction. Default is false
 
     Returns:
         mesh_left, mesh_right with interlock
     """
+    
+    avoidance_dist = avoidance_layers*NOZZLE_SIZE
+
+    print(type(beam_height_layers))
+    print(type(LAYER_HEIGHT))
 
     cut_width, cut_height, bounds = get_split_face(mesh_left)
 
@@ -86,11 +93,18 @@ def add_3d_dovetail_interlock(
 
     # create 3D dovetail
     dovetail, dovetail_z_large_height, dovetail_y_large_width = _create_3D_dovetail_with_taper(
-        taper_angle_z_deg, taper_angle_y_deg, dovetail_small_height, dovetail_width, dovetail_depth, inverted)
+        taper_angle_z_deg, 
+        taper_angle_y_deg, 
+        dovetail_small_height, 
+        dovetail_width, 
+        dovetail_depth, 
+        z_inverted,
+        y_inverted
+    )
     
     bounds = dovetail.bounds
     dovetail_width_x = bounds[1][0] - bounds[0][0]
-    print(f'width: {dovetail_width}, width_x: {dovetail_width_x}')
+    # print(f'width: {dovetail_width}, width_x: {dovetail_width_x}')
 
     target_min_x = plane_x - dovetail_width_x / 2
 
@@ -200,7 +214,7 @@ def _create_trapezoidal_pyramid(top_width, top_length, bottom_width, bottom_leng
 
 
 # MAYBE CALCULATE USING Y_LARGE_WIDTH?
-def _create_3D_dovetail_with_taper(taper_angle_z_deg, taper_angle_y_deg, z_small_height, y_small_width, depth, inverted=False):
+def _create_3D_dovetail_with_taper(taper_angle_z_deg, taper_angle_y_deg, z_small_height, y_small_width, depth, z_inverted=False, y_inverted=False):
     """
     Create a dovetail for a given taper angle
     
@@ -209,7 +223,8 @@ def _create_3D_dovetail_with_taper(taper_angle_z_deg, taper_angle_y_deg, z_small
         small_height: height of the small connection. Should be at least 2 nozzle width
         taper_angle_deg: angle of table based on bottom angle. In degrees
         depth: depth of dovetail extrude
-        inverted: which side of dovetail is extruding. Default is false
+        z_inverted: if dovetail is inverted in z (height) direction. Default is false
+        y_inverted: if dovetail is inverted in y (width) direction. Default is false
     """
     z_angle = np.radians(taper_angle_z_deg)
     z_delta = z_small_height * np.tan(z_angle)  # difference between heights
@@ -228,26 +243,49 @@ def _create_3D_dovetail_with_taper(taper_angle_z_deg, taper_angle_y_deg, z_small
     y_large_width = round(factor * LAYER_HEIGHT, 2)
 
 
-    dovetail = _create_trapezoidal_pyramid(z_small_height, y_small_width, z_large_height, y_large_width, depth) 
-    
-    if inverted:
-        # rotate small height face to align with cut plane 
-        # large end sticking out
-        dovetail.apply_transform(
-            trimesh.transformations.rotation_matrix(
-                -np.pi / 2,
-                [0, 1, 0]
-            )
-        )
+    # dovetail = _create_trapezoidal_pyramid(z_small_height, y_small_width, z_large_height, y_large_width, depth) 
+    if z_inverted:
+        top_width = z_large_height
+        bottom_width = z_small_height
     else:
-        # rotate large height face to align with cut plane 
-        # small end sticking out
-        dovetail.apply_transform(
-            trimesh.transformations.rotation_matrix(
-                np.pi / 2,
-                [0, 1, 0]
-            )
+        top_width = z_small_height
+        bottom_width = z_large_height
+    
+    if y_inverted:
+        top_length = y_large_width
+        bottom_length = y_small_width
+    else:
+        top_length = y_small_width
+        bottom_length = y_large_width
+    
+    dovetail = _create_trapezoidal_pyramid(top_width, top_length, bottom_width, bottom_length, depth)
+
+    # if inverted:
+    #     # rotate small height face to align with cut plane 
+    #     # large end sticking out
+    #     dovetail.apply_transform(
+    #         trimesh.transformations.rotation_matrix(
+    #             -np.pi / 2,
+    #             [0, 1, 0]
+    #         )
+    #     )
+    # else:
+    #     # rotate large height face to align with cut plane 
+    #     # small end sticking out
+    #     dovetail.apply_transform(
+    #         trimesh.transformations.rotation_matrix(
+    #             np.pi / 2,
+    #             [0, 1, 0]
+    #         )
+    #     )
+
+    # rotate to align with face
+    dovetail.apply_transform(
+        trimesh.transformations.rotation_matrix(
+            np.pi / 2,      # - ?
+            [0, 1, 0]
         )
+    )
     
     return dovetail, z_large_height, y_large_width
     
