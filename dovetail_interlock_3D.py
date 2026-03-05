@@ -43,8 +43,6 @@ def add_3d_dovetail_interlock(
     
     avoidance_dist = avoidance_layers*NOZZLE_SIZE
 
-    print(type(beam_height_layers))
-    print(type(LAYER_HEIGHT))
 
     cut_width, cut_height, bounds = get_split_face(mesh_left)
 
@@ -82,7 +80,8 @@ def add_3d_dovetail_interlock(
     
     # define interlock beams
     dovetail_depth = beam_depth_layers*NOZZLE_SIZE*2    # multiply by 2 since only have of resulting dovetail goes into the other mesh
-    dovetail_width = interlock_width/2        # TODO -- NOT SURE SINCE OTHER END IS BIGGER OR (beam_width_layers*NOZZLE_SIZE)
+    # dovetail_width = interlock_width/2        # TODO -- NOT SURE SINCE OTHER END IS BIGGER OR (beam_width_layers*NOZZLE_SIZE)
+    dovetail_width = beam_width_layers*NOZZLE_SIZE
     dovetail_small_height = beam_height_layers*LAYER_HEIGHT
 
 
@@ -118,7 +117,7 @@ def add_3d_dovetail_interlock(
     # center for width (y)
     bounds = dovetail.bounds
     center_y = bounds[:,1].mean()
-    target_y = min_int_y + dovetail_width 
+    target_y = min_int_y + dovetail_width/2
     dovetail.apply_translation([0, target_y - center_y, 0])
 
 

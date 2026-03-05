@@ -40,7 +40,7 @@ def test():
         print('Testing different taper angles...')
 
         # parameters
-        beam_depth_layers = 4
+        beam_depth_layers = 8
         beam_height_layers = 4 
         avoidance_layers = 2
 
@@ -54,12 +54,12 @@ def test():
                 left_mesh = test_left_mesh.copy()
                 right_mesh = test_right_mesh.copy()
 
-                add_3d_dovetail_interlock(
+                left_mesh, right_mesh = add_3d_dovetail_interlock(
                     left_mesh, 
                     right_mesh, 
                     taper_angle_z_deg=z_angle, 
                     taper_angle_y_deg=y_angle, 
-                    beam_width_layers=beam_depth_layers, 
+                    beam_depth_layers=beam_depth_layers, 
                     beam_height_layers=beam_height_layers, 
                     avoidance_layers=avoidance_layers, 
                     z_inverted=z_invert,
