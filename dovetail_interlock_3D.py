@@ -67,11 +67,16 @@ def add_3d_dovetail_interlock(
     int_vertical_height = np.round(num_int_vertical * (beam_height_layers*LAYER_HEIGHT), 3) # round to get rid of division errors
     # print(f'num interlock beams vertical: {num_int_vertical}')
     # print(f'height of interlock pattern {int_vertical_height} mm')
+
+    # if (interlock_height - int_vertical_height) >= dovetail_z_large_height:
+    #     num_int_vertical += 1
+    #     int_vertical_height = np.round(num_int_vertical * (beam_height_layers * LAYER_HEIGHT), 3)
     
-    # calculate start and end point of interlock pattern (lowest z to highest z)
-    center_height = (bounds[2] + cut_height/2)
-    start_height = center_height - (int_vertical_height/2)
-    end_height = center_height + (int_vertical_height/2)
+    # # calculate start and end point of interlock pattern (lowest z to highest z)
+    # # center_height = (bounds[2] + cut_height/2)
+    # center_height = (min_int_z + max_int_z) / 2
+    # start_height = center_height - (int_vertical_height/2)
+    # end_height = center_height + (int_vertical_height/2)
 
     # print(f'middle height cut: {center_height}')
     # print(f'start height: {start_height}')
@@ -100,6 +105,16 @@ def add_3d_dovetail_interlock(
         z_inverted,
         y_inverted
     )
+
+    if (interlock_height - int_vertical_height) >= dovetail_z_large_height:
+        num_int_vertical += 1
+        int_vertical_height = np.round(num_int_vertical * (beam_height_layers * LAYER_HEIGHT), 3)
+    
+    # calculate start and end point of interlock pattern (lowest z to highest z)
+    # center_height = (bounds[2] + cut_height/2)
+    center_height = (min_int_z + max_int_z) / 2
+    start_height = center_height - (int_vertical_height/2)
+    end_height = center_height + (int_vertical_height/2)
     
     bounds = dovetail.bounds
     dovetail_width_x = bounds[1][0] - bounds[0][0]
@@ -117,7 +132,8 @@ def add_3d_dovetail_interlock(
     # center for width (y)
     bounds = dovetail.bounds
     center_y = bounds[:,1].mean()
-    target_y = min_int_y + dovetail_width/2
+    # target_y = min_int_y + dovetail_width/2
+    target_y = (min_int_y + max_int_y) / 2
     dovetail.apply_translation([0, target_y - center_y, 0])
 
 
