@@ -30,7 +30,7 @@ def test():
 
     # variable parameter
     z_taper_angles = [20, 25, 30, 35]   # this is looking on the thicker side
-    y_taper_angles = [40, 45, 50, 55]     # this is looking on the thin side
+    y_taper_angles = [60, 65]     # this is looking on the thin side
 
     for z_angle in z_taper_angles:
 
@@ -52,8 +52,8 @@ def test():
             )
 
             # create paths and export meshes
-            left_mesh_path = f'output/taper_angle_test_2/z_{z_angle}/mesh_left_z_{z_angle}_y_{y_angle}.stl'
-            right_mesh_path = f'output/taper_angle_test_2/z_{z_angle}/mesh_right_z_{z_angle}_y_{y_angle}.stl'
+            left_mesh_path = f'output/taper_angle_test_3/z_{z_angle}/mesh_left_z_{z_angle}_y_{y_angle}.stl'
+            right_mesh_path = f'output/taper_angle_test_3/z_{z_angle}/mesh_right_z_{z_angle}_y_{y_angle}.stl'
 
             os.makedirs(os.path.dirname(left_mesh_path), exist_ok=True)
             os.makedirs(os.path.dirname(right_mesh_path), exist_ok=True)
