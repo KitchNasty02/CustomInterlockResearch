@@ -56,15 +56,15 @@ def add_3d_dovetail_interlock(
     # print(f'int height: {interlock_height}')
     # print(f'int width: {interlock_width}')
 
-    num_int_vertical = np.floor(interlock_height / (beam_height_layers*LAYER_HEIGHT))
+    # num_int_vertical = np.floor(interlock_height / (beam_height_layers*LAYER_HEIGHT))
 
-    # if the num is within the tolerance of a beam, then go ahead and add it
-    if np.ceil(num_int_vertical) - num_int_vertical < 0.25:
-        num_int_vertical = np.ceil(num_int_vertical)
-    else:
-        num_int_vertical = np.floor(num_int_vertical)
+    # # if the num is within the tolerance of a beam, then go ahead and add it
+    # if np.ceil(num_int_vertical) - num_int_vertical < 0.25:
+    #     num_int_vertical = np.ceil(num_int_vertical)
+    # else:
+    #     num_int_vertical = np.floor(num_int_vertical)
 
-    int_vertical_height = np.round(num_int_vertical * (beam_height_layers*LAYER_HEIGHT), 3) # round to get rid of division errors
+    # int_vertical_height = np.round(num_int_vertical * (beam_height_layers*LAYER_HEIGHT), 3) # round to get rid of division errors
     # print(f'num interlock beams vertical: {num_int_vertical}')
     # print(f'height of interlock pattern {int_vertical_height} mm')
 
@@ -106,15 +106,32 @@ def add_3d_dovetail_interlock(
         y_inverted
     )
 
-    if (interlock_height - int_vertical_height) >= dovetail_z_large_height:
-        num_int_vertical += 1
-        int_vertical_height = np.round(num_int_vertical * (beam_height_layers * LAYER_HEIGHT), 3)
+    # if (interlock_height - int_vertical_height) >= dovetail_z_large_height:
+    #     num_int_vertical += 1
+    #     int_vertical_height = np.round(num_int_vertical * (beam_height_layers * LAYER_HEIGHT), 3)
     
+    # # calculate start and end point of interlock pattern (lowest z to highest z)
+    # # center_height = (bounds[2] + cut_height/2)
+    # center_height = (min_int_z + max_int_z) / 2
+    # start_height = center_height - (int_vertical_height/2)
+    # end_height = center_height + (int_vertical_height/2)
+
+
+
+    num_int_vertical = np.floor(interlock_height / dovetail_z_large_height)
+
+    if np.ceil(num_int_vertical) - (interlock_height / dovetail_z_large_height) < 0.25:
+        num_int_vertical = np.ceil(num_int_vertical)
+
+    int_vertical_height = np.round(num_int_vertical * dovetail_z_large_height, 3)
+
     # calculate start and end point of interlock pattern (lowest z to highest z)
-    # center_height = (bounds[2] + cut_height/2)
     center_height = (min_int_z + max_int_z) / 2
     start_height = center_height - (int_vertical_height/2)
     end_height = center_height + (int_vertical_height/2)
+
+
+
     
     bounds = dovetail.bounds
     dovetail_width_x = bounds[1][0] - bounds[0][0]
@@ -140,10 +157,14 @@ def add_3d_dovetail_interlock(
     # scene = trimesh.Scene([mesh_left, dovetail])
     # scene.show()
 
+    n_beams = int(round(num_int_vertical))
+    step = dovetail_z_large_height
+    heights = start_height + (np.arange(n_beams) + 0.5) * step
+
 
     # CALCULATE START HEIGHTS AND UNION/DIFF    
 
-    for i, h in enumerate(np.arange(start_height, end_height, dovetail_z_large_height)):
+    for i, h in enumerate(heights):
         dovetail_copy = dovetail.copy()
 
         if i % 2 == 0:
@@ -159,12 +180,13 @@ def add_3d_dovetail_interlock(
         else:
             dovetail_copy.apply_translation([0, 0, h])    # move to height and back half of dovetail
 
-            # rotate dovetail 180 degrees
+            # rotate dovetail 180 degrees around bounding box center
+            bbox_center = dovetail_copy.bounds.mean(axis=0)
             dovetail_copy.apply_transform(
                 trimesh.transformations.rotation_matrix(
                     -np.pi,
                     [0, 0, 1],
-                    dovetail_copy.centroid
+                    bbox_center
                 )
             )
             
